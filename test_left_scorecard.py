@@ -34,4 +34,3 @@ def test_score_ones_no_dice():
     score = testing_sc.score_ones([])
     assert score == "Cannot score. Missing Dice"
     assert testing_sc.ones == None
- 
