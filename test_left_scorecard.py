@@ -1,36 +1,15 @@
-from scorecard import Scorecard
- 
- 
-def test_score_ones():
-    testing_sc = Scorecard()
-    score = testing_sc.score_ones([1,1,2,3,4])
-    assert score == 2
- 
-    testing_sc = Scorecard()
-    score = testing_sc.score_ones([1,1,2,1,1])
-    assert score == 4
- 
-    testing_sc = Scorecard()
-    score = testing_sc.score_ones([5,5,5,5,5])
-    assert score == 0
- 
-def test_try_to_score_after_scoring():
-    testing_sc = Scorecard()
-    score = testing_sc.score_ones([1,1,2,3,4])
-    assert score == 2
- 
-    score = testing_sc.score_ones([1,1,2,1,1])
-    assert score == "Ones already used"
- 
-    testing_sc = Scorecard()
-    score = testing_sc.score_ones([5,5,2,3,4])
-    assert score == 0
- 
-    score = testing_sc.score_ones([1,1,2,1,1])
-    assert score == "Ones already used"
- 
-def test_score_ones_no_dice():
-    testing_sc = Scorecard()
-    score = testing_sc.score_ones([])
-    assert score == "Cannot score. Missing Dice"
-    assert testing_sc.ones == None
+import pytest
+from left_scorecard import LeftScoreCard
+
+def test_basic_scoring():
+    s = LeftScoreCard()
+    s.set_score("fives", [5,5,2,3,1])
+    assert s.scores["fives"] == 10
+
+def test_bonus():
+    s = LeftScoreCard()
+    s.scores = {"ones": 3, "twos": 6, "threes": 9,
+                "fours": 12, "fives": 15, "sixes": 18}
+    assert s.total() == 63
+    assert s.bonus() == 35
+    assert s.grand_total() == 98
