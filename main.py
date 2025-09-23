@@ -13,7 +13,7 @@ def roll_dice(dice:list[Die]):
         if die.can_roll.get():
             die.roll()
         
-    scorecard.score_full_house(dice)
+
 
 
 
@@ -51,6 +51,38 @@ button1 = tk.Button(window,
                     text="Roll",
                     command=lambda: roll_dice(dice))
 button1.grid(column=2, row=4)
+
+
+#######################Ones########################
+ones_score = tk.IntVar()
+ 
+def use_ones(dice: list[Die]):
+    dice_vals = [die.value for die in dice]    
+    score = scorecard.score_ones(dice_vals)
+    ones_score.set(score)
+ 
+ones_button = tk.Button(window, text="ones", command=lambda: use_ones(dice))
+ones_button.grid(column=0, row=5)
+ones_label = tk.Label(window, textvariable=ones_score)
+ones_label.grid(column=1, row=5)
+ 
+ 
+ 
+ 
+############Full House########################
+full_house_score = tk.IntVar()
+full_house_button = tk.Button(window, text="Full House", command=lambda: use_full_house(dice))
+ 
+def use_full_house(dice: list[Die]):
+    dice_vals = [die.value for die in dice]    
+    score = scorecard.score_full_house(dice_vals)
+    full_house_score.set(score)
+    full_house_button.config(state=tk.DISABLED)
+ 
+ 
+full_house_button.grid(column=3, row=5)
+full_house_label = tk.Label(window, textvariable=full_house_score)
+full_house_label.grid(column=4, row=5)
 
 window.mainloop()
 
