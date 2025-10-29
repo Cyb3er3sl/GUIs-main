@@ -1,88 +1,79 @@
 import tkinter as tk
-
-window = tk.Tk()
-
+from tkinter import messagebox
 from die import Die
-from scorecard import Scorecard
+from scorecard import Scorecard, CATEGORIES
 
-scorecard = Scorecard()
+class YahtzeeGame:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Yahtzee Game")
 
-def roll_dice(dice:list[Die]):
+        self.dice = [Die() for _ in range(5)]
+        self.rolls_left = 3
+        self.scorecard = Scorecard()
 
-    for die in dice:
-        if die.can_roll.get():
-            die.roll()
-        
+        self.dice_vars = [tk.StringVar(value="1") for _ in range(5)]
+        self.hold_vars = [tk.IntVar(value=0) for _ in range(5)]
+        self.roll_label = tk.Label(root, text=f"Rolls left: {self.rolls_left}")
+        self.roll_label.pack()
 
+        dice_frame = tk.Frame(root)
+        dice_frame.pack(pady=10)
+        for i in range(5):
+            sub = tk.Frame(dice_frame)
+            sub.pack(side=tk.LEFT, padx=5)
+            tk.Label(sub, textvariable=self.dice_vars[i], font=("Helvetica", 24)).pack()
+            tk.Checkbutton(sub, text="Hold", variable=self.hold_vars[i]).pack()
 
+        tk.Button(root, text="Roll", command=self.roll).pack(pady=5)
 
+        self.cat_var = tk.StringVar(value=CATEGORIES[0])
+        tk.OptionMenu(root, self.cat_var, *CATEGORIES).pack(pady=5)
+        tk.Button(root, text="Score Category", command=self.score_category).pack(pady=5)
+        tk.Button(root, text="Show Scorecard", command=self.show_scorecard).pack(pady=5)
 
-header = tk.Label(window, text="Yahtzee")
-header.grid(column=0, row = 0)
+        self.roll()
 
-dice = []
-dice_labels = []
-for i in range(5):    
-    label = tk.Label(window)
-    label.grid(column=i, row=2)
-    dice.append(Die(i, label))
+    def roll(self):
+        if self.rolls_left <= 0:
+            messagebox.showinfo("No rolls left", "You must score before rolling again.")
+            return
+        for i, die in enumerate(self.dice):
+            if not self.hold_vars[i].get():
+                die.roll()
+                self.dice_vars[i].set(str(die.value))
+        self.rolls_left -= 1
+        self.roll_label.config(text=f"Rolls left: {self.rolls_left}")
 
+    def score_category(self):
+        dice_values = [int(v.get()) for v in self.dice_vars]
+        cat = self.cat_var.get()
+        try:
+            score = self.scorecard.set_score(cat, dice_values)
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+            return
+        messagebox.showinfo("Scored", f"You scored {score} points in '{cat}'.")
+        self.reset_turn()
 
+        if not self.scorecard.available_categories():
+            total = self.scorecard.grand_total()
+            messagebox.showinfo("Game Over", f"All categories scored!\nFinal Score: {total}")
+            self.root.destroy()
 
-check_button_0 = tk.Checkbutton(window, text="Keep", onvalue=0, offvalue=1, variable=dice[0].can_roll)
-check_button_0.grid(column=0, row=3)
+    def reset_turn(self):
+        self.rolls_left = 3
+        for h in self.hold_vars:
+            h.set(0)
+        self.roll_label.config(text=f"Rolls left: {self.rolls_left}")
+        self.roll()
 
-check_button_1 = tk.Checkbutton(window, text="Keep", onvalue=0, offvalue=1, variable=dice[1].can_roll)
-check_button_1.grid(column=1, row=3)
+    def show_scorecard(self):
+        lines = [f"{cat}: {self.scorecard.scores[cat]}" for cat in CATEGORIES]
+        lines.append(f"Total: {self.scorecard.grand_total()}")
+        messagebox.showinfo("Scorecard", "\n".join(lines))
 
-check_button_2 = tk.Checkbutton(window, text="Keep", onvalue=0, offvalue=1, variable=dice[2].can_roll)
-check_button_2.grid(column=2, row=3)
-
-check_button_3 = tk.Checkbutton(window, text="Keep", onvalue=0, offvalue=1, variable=dice[3].can_roll)
-check_button_3.grid(column=3, row=3)
-
-
-check_button_4 = tk.Checkbutton(window, text="Keep", onvalue=0, offvalue=1, variable=dice[4].can_roll)
-check_button_4.grid(column=4, row=3)
-
-
-
-button1 = tk.Button(window, 
-                    text="Roll",
-                    command=lambda: roll_dice(dice))
-button1.grid(column=2, row=4)
-
-
-#######################Ones########################
-ones_score = tk.IntVar()
- 
-def use_ones(dice: list[Die]):
-    dice_vals = [die.value for die in dice]    
-    score = scorecard.score_ones(dice_vals)
-    ones_score.set(score)
- 
-ones_button = tk.Button(window, text="ones", command=lambda: use_ones(dice))
-ones_button.grid(column=0, row=5)
-ones_label = tk.Label(window, textvariable=ones_score)
-ones_label.grid(column=1, row=5)
- 
- 
- 
- 
-############Full House########################
-full_house_score = tk.IntVar()
-full_house_button = tk.Button(window, text="Full House", command=lambda: use_full_house(dice))
- 
-def use_full_house(dice: list[Die]):
-    dice_vals = [die.value for die in dice]    
-    score = scorecard.score_full_house(dice_vals)
-    full_house_score.set(score)
-    full_house_button.config(state=tk.DISABLED)
- 
- 
-full_house_button.grid(column=3, row=5)
-full_house_label = tk.Label(window, textvariable=full_house_score)
-full_house_label.grid(column=4, row=5)
-
-window.mainloop()
-
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = YahtzeeGame(root)
+    root.mainloop()
